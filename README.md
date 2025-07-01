@@ -33,7 +33,7 @@ This information is specified in the file [persistence.xml](/src/main/resources/
 > :warning: **Replace the URI** `jdbc:postgresql://localhost:5432/keycloak` **with your database address.**
 
 ### Using Postgres
-> :warning: **I recommend using your own database**, cause not all systems will have a database at `localhost` available to the `docker` container.
+Connect to an existing OBP PostgreSQL database. For development/testing purposes, create your own database instance locally:
 
 To deploy the container use the script :
 ```shell
@@ -45,7 +45,7 @@ The script deploys the container locally.
 It uses port : 5432. 
 
 The scripts in the container create a `keycloak` database. 
-In the database create a table `users` :
+In the database create a table `authuser` :
 ```sql
 CREATE TABLE public.authuser (
 	id bigserial NOT NULL,
