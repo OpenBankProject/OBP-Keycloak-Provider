@@ -12,16 +12,16 @@
         <class>io.tesobe.model.KcUserEntity</class>
 
         <properties>
-            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://192.168.1.23:5432/obp_mapped"/>
-            <property name="javax.persistence.jdbc.user" value="YOUR_DB_USER"/>
-            <property name="javax.persistence.jdbc.password" value="YOUR_DB_PASSWORD"/>
+            <property name="javax.persistence.jdbc.driver" value="${DB_DRIVER}"/>
+            <property name="javax.persistence.jdbc.url" value="${DB_URL}"/>
+            <property name="javax.persistence.jdbc.user" value="${DB_USER}"/>
+            <property name="javax.persistence.jdbc.password" value="${DB_PASSWORD}"/>
 
             <!-- Hibernate-specific settings -->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
-            <property name="hibernate.hbm2ddl.auto" value="validate"/>
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.dialect" value="${DB_DIALECT}"/>
+            <property name="hibernate.hbm2ddl.auto" value="${HIBERNATE_DDL_AUTO}"/>
+            <property name="hibernate.show_sql" value="${HIBERNATE_SHOW_SQL}"/>
+            <property name="hibernate.format_sql" value="${HIBERNATE_FORMAT_SQL}"/>
         </properties>
     </persistence-unit>
 </persistence>

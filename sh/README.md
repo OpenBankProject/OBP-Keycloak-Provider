@@ -31,7 +31,7 @@ The script performs these steps:
   KC_BOOTSTRAP_ADMIN_PASSWORD=your_admin_password
 ````
 
-> ⚠ Move any other secrets you need here too.
+> Warning: Move any other secrets you need here too.
 
 ---
 
@@ -58,7 +58,7 @@ The script will:
 
 ---
 
-## 🛠 Configuration
+## Configuration
 
 Default configuration inside the script:
 

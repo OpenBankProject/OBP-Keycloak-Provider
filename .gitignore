@@ -2,6 +2,25 @@
 # Compiled class file
 *.class
 
+# Maven build directory
+target/
+
+# Maven wrapper files (if present)
+.mvn/
+mvnw
+mvnw.cmd
+
+# Maven release plugin
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Maven Surefire plugin
+.surefire-*
+
 # Log file
 *.log
 
@@ -59,7 +78,10 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Maven Shade Plugin output
-dependency-reduced-pom.xml
+# Maven artifacts (already covered above)
 
+# Environment variables file
+.env
+
+# Persistence configuration file (generated from template)
 src/main/resources/META-INF/persistence.xml

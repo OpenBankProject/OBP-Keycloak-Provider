@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: obp-postgres
+    environment:
+      POSTGRES_DB: obp_mapped
+      POSTGRES_USER: obp
+      POSTGRES_PASSWORD: your_secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - keycloak-network
+
+  keycloak:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: obp-keycloak
+    environment:
+      # Keycloak admin credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin_password
+
+      # Database configuration (from .env file)
+      DB_URL: jdbc:postgresql://postgres:5432/obp_mapped
+      DB_USER: obp
+      DB_PASSWORD: your_secure_password
+      DB_DRIVER: org.postgresql.Driver
+      DB_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      HIBERNATE_DDL_AUTO: validate
+      HIBERNATE_SHOW_SQL: "true"
+      HIBERNATE_FORMAT_SQL: "true"
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - postgres
+    networks:
+      - keycloak-network
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  postgres_data:
+  keycloak_data:
+
+networks:
+  keycloak-network:
+    driver: bridge

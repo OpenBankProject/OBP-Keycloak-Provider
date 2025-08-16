@@ -2,10 +2,14 @@ package io.tesobe.model;
 
 import org.jboss.logging.Logger;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
+import org.keycloak.models.*;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
@@ -16,7 +20,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, KcUserEntity entity) {
         super(session, realm, model);
         this.entity = entity;
-        log.info(this.entity);
+        log.info("UserAdapter created for: " + this.entity);
         this.keycloakId = StorageId.keycloakId(model, entity.getId().toString());
     }
 
@@ -68,7 +72,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         entity.setLastName(lastName);
     }
 
-    // Password (custom credential field)
+    // Password and salt (custom fields)
     public String getPassword() {
         return entity.getPassword();
     }
@@ -77,7 +81,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         log.info("$ setPassword() called with: password = [" + password + "]");
         entity.setPassword(password);
     }
-    // Password (custom credential field)
+
     public String getSalt() {
         return entity.getSalt();
     }
@@ -87,23 +91,118 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         entity.setSalt(salt);
     }
 
+    // Keycloak ID (used internally)
     @Override
     public String getId() {
         return keycloakId;
     }
 
-//    @Override
-//    public Map<String, List<String>> getAttributes() {
-//        Map<String, List<String>> attrs = new HashMap<>();
-//        attrs.put("firstName", List.of(getFirstName()));
-//        attrs.put("lastName", List.of(getLastName()));
-//        attrs.put("email", List.of(getEmail()));
-//        return attrs;
-//    }
-
     @Override
     public boolean isEmailVerified() {
-        return entity.getValidated();
+        return Boolean.TRUE.equals(entity.getValidated());
     }
 
+    @Override
+    public void setEmailVerified(boolean verified) {
+        entity.setValidated(verified);
+    }
+
+    // Optional: Required actions
+    @Override
+    public Stream<String> getRequiredActionsStream() {
+        return super.getRequiredActionsStream(); // uses federated storage
+    }
+
+    @Override
+    public void addRequiredAction(String action) {
+        super.addRequiredAction(action);
+    }
+
+    @Override
+    public void removeRequiredAction(String action) {
+        super.removeRequiredAction(action);
+    }
+
+    // Optional: Attributes — can override if storing externally
+    @Override
+    public void setSingleAttribute(String name, String value) {
+        super.setSingleAttribute(name, value);
+    }
+
+    @Override
+    public void setAttribute(String name, List<String> values) {
+        super.setAttribute(name, values);
+    }
+
+    @Override
+    public void removeAttribute(String name) {
+        super.removeAttribute(name);
+    }
+
+    @Override
+    public String getFirstAttribute(String name) {
+        return super.getFirstAttribute(name);
+    }
+
+    @Override
+    public Map<String, List<String>> getAttributes() {
+        return super.getAttributes();
+    }
+
+    // Optional: Groups
+    @Override
+    public Stream<GroupModel> getGroupsStream() {
+        return super.getGroupsStream();
+    }
+
+    @Override
+    public void joinGroup(GroupModel group) {
+        super.joinGroup(group);
+    }
+
+    @Override
+    public void leaveGroup(GroupModel group) {
+        super.leaveGroup(group);
+    }
+
+    @Override
+    public boolean isMemberOf(GroupModel group) {
+        return super.isMemberOf(group);
+    }
+
+    // Optional: Roles
+    @Override
+    public Stream<RoleModel> getRoleMappingsStream() {
+        return super.getRoleMappingsStream();
+    }
+
+    @Override
+    public void grantRole(RoleModel role) {
+        super.grantRole(role);
+    }
+
+    @Override
+    public void deleteRoleMapping(RoleModel role) {
+        super.deleteRoleMapping(role);
+    }
+
+    @Override
+    public boolean hasRole(RoleModel role) {
+        return super.hasRole(role);
+    }
+
+    @Override
+    public Stream<RoleModel> getRealmRoleMappingsStream() {
+        return super.getRealmRoleMappingsStream();
+    }
+
+    @Override
+    public Stream<RoleModel> getClientRoleMappingsStream(ClientModel client) {
+        return super.getClientRoleMappingsStream(client);
+    }
+
+    @Override
+    public String toString() {
+        return "UserAdapter[" + keycloakId + ", " + getUsername() + "]";
+    }
 }
