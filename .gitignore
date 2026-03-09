@@ -50,6 +50,12 @@ hs_err_pid*
 *.iml
 out
 gen
+
+# VSCode
+.vscode/
+
+# Metals (Scala LSP)
+.metals/
 ### macOS template
 # General
 .DS_Store

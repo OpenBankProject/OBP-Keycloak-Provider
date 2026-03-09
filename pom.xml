@@ -1,12 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.tesobe</groupId>
   <artifactId>obp-keycloak-provider</artifactId>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
 
   <name>obp-keycloak-provider</name>
   <url>http://www.example.com</url>
@@ -15,6 +17,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+    <!-- Local dev default. CI/CD overrides this via -Dversion.keycloak from KEYCLOAK_VERSION
+         defined in .github/workflows/build_container_main_branch_themed.yml -->
     <version.keycloak>26.5.1</version.keycloak>
     <version.compiler.maven.plugin>3.5.1</version.compiler.maven.plugin>
     <version.jakarta.persistence>3.1.0</version.jakarta.persistence>
@@ -137,7 +141,8 @@
             <phase>process-resources</phase>
             <goals><goal>copy-resources</goal></goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/themes-filtered</outputDirectory>
+              <outputDirectory
+                            >${project.build.directory}/themes-filtered</outputDirectory>
               <useDefaultDelimiters>false</useDefaultDelimiters>
               <delimiters><delimiter>@</delimiter></delimiters>
               <resources>

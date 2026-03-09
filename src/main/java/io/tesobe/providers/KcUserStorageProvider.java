@@ -147,32 +147,34 @@ public class KcUserStorageProvider
 
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
-        // In API mode there is no locally stored hash to check —
-        // any federated user is assumed to have a password managed by OBP.
-        return supportsCredentialType(credentialType);
+        boolean supported = supportsCredentialType(credentialType);
+        log.warnf("isConfiguredFor() — user: %s, credentialType: %s → %b",
+            user.getUsername(), credentialType, supported);
+        return supported;
     }
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput input) {
-        log.infof("isValid() called for user: %s", user.getUsername());
+        log.warnf(">>> isValid() called for user: %s, credentialType: %s <<<",
+            user.getUsername(), input.getType());
 
         if (!supportsCredentialType(input.getType())) {
-            log.warnf("Unsupported credential type: %s for user: %s",
+            log.warnf("isValid() — unsupported credential type: %s for user: %s",
                 input.getType(), user.getUsername());
             return false;
         }
 
         String rawPassword = input.getChallengeResponse();
         if (rawPassword == null || rawPassword.trim().isEmpty()) {
-            log.warnf("Empty or null password provided for user: %s", user.getUsername());
+            log.warnf("isValid() — empty or null password for user: %s", user.getUsername());
             return false;
         }
 
         boolean valid = apiClient.verifyUserCredentials(user.getUsername(), rawPassword) != null;
         if (valid) {
-            log.infof("Password validation SUCCESSFUL for user: %s", user.getUsername());
+            log.warnf("isValid() — password validation SUCCESSFUL for user: %s", user.getUsername());
         } else {
-            log.warnf("Password validation FAILED for user: %s", user.getUsername());
+            log.warnf("isValid() — password validation FAILED for user: %s", user.getUsername());
         }
         return valid;
     }
@@ -201,8 +203,10 @@ public class KcUserStorageProvider
 
     @Override
     public int getUsersCount(RealmModel realm) {
-        log.infof("getUsersCount() called — returning 0 (count not available via OBP API)");
-        return 0;
+        List<KcUserEntity> users = apiClient.listUsers(0, 0);
+        int count = users.size();
+        log.infof("getUsersCount() — found %d users for configured provider", count);
+        return count;
     }
 
     @Override

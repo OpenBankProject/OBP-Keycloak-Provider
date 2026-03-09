@@ -19,22 +19,30 @@
 #   KC_DB_USERNAME         — Keycloak database user
 #   KC_DB_PASSWORD         — Keycloak database password
 
+# Keycloak version — passed at build time from the workflow env.KEYCLOAK_VERSION.
+# Never hardcode it here — change KEYCLOAK_VERSION in the workflow and it propagates
+# to both the Maven build (via -Dversion.keycloak) and the Keycloak base images.
+ARG KEYCLOAK_VERSION
+
 # === Stage 1: Build the provider JAR with Maven ===
 FROM maven:3-eclipse-temurin-17 AS maven
 
+# Re-declare so it is available inside this stage
+ARG KEYCLOAK_VERSION
 ARG BUILD_TIMESTAMP
 ARG JAR_CHECKSUM
 
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests -q
+# Override pom.xml <version.keycloak> with the value from the workflow
+RUN mvn clean package -Dversion.keycloak=${KEYCLOAK_VERSION} -DskipTests -q
 
 # Build metadata for cache invalidation
 RUN echo "Build timestamp: ${BUILD_TIMESTAMP}" > /tmp/build-info.txt && \
     echo "JAR checksum: ${JAR_CHECKSUM}" >> /tmp/build-info.txt
 
 # === Stage 2: Build Keycloak with the provider JAR ===
-FROM quay.io/keycloak/keycloak:26.5.1 AS builder
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 
 ENV KC_HEALTH_ENABLED=true
 ENV KC_METRICS_ENABLED=true
@@ -59,7 +67,7 @@ RUN /opt/keycloak/bin/kc.sh build
 
 # === Final Runtime Image ===
 # Use the same Keycloak base image for the final runtime image
-FROM quay.io/keycloak/keycloak:26.5.1
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY --from=maven /tmp/build-info.txt /opt/keycloak/

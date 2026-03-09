@@ -75,7 +75,7 @@ source .env
 KEYCLOAK_HOST="${KEYCLOAK_HOST:-localhost}"
 
 # Validate required vars
-required_vars=("KC_DB_URL" "KC_DB_USERNAME" "KC_DB_PASSWORD" "OBP_API_URL" "OBP_API_USERNAME" "OBP_API_PASSWORD" "OBP_API_CONSUMER_KEY" "OBP_AUTHUSER_PROVIDER")
+required_vars=("KC_DB_URL" "KC_DB_USERNAME" "KC_DB_PASSWORD" "OBP_API_URL" "OBP_API_USERNAME" "OBP_API_PASSWORD" "OBP_API_CONSUMER_KEY" "OBP_AUTHUSER_PROVIDER" "KEYCLOAK_VERSION")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo -e "${RED}✗ Missing environment variable: $var${NC}"
@@ -213,11 +213,13 @@ echo -e "${CYAN}[6/8] Building Docker Image${NC}"
 echo "Building with:"
 echo "  Dockerfile: $DOCKERFILE_PATH"
 echo "  Image tag: $IMAGE_TAG"
+echo "  Keycloak version: $KEYCLOAK_VERSION"
 
 # Force rebuild with cache invalidation; capture output for diagnostics
 DOCKER_BUILD_LOG=$(mktemp)
 docker build \
     --no-cache \
+    --build-arg KEYCLOAK_VERSION="$KEYCLOAK_VERSION" \
     --build-arg BUILD_TIMESTAMP="$BUILD_TIMESTAMP" \
     --build-arg JAR_CHECKSUM="$JAR_CHECKSUM" \
     -t "$IMAGE_TAG" \
@@ -240,15 +242,17 @@ echo -e "${GREEN}✓ Docker image built${NC}"
 # Step 7: Start new container
 echo -e "${CYAN}[7/8] Starting New Container${NC}"
 
-# Translate localhost/127.0.0.1 in OBP_API_URL to host.docker.internal so the
-# provider inside the container can reach OBP running on the host.
-# (Inside Docker, 127.0.0.1 resolves to the container itself, not the host.)
-CONTAINER_OBP_API_URL="${OBP_API_URL//127.0.0.1/host.docker.internal}"
-CONTAINER_OBP_API_URL="${CONTAINER_OBP_API_URL//localhost/host.docker.internal}"
-if [ "$CONTAINER_OBP_API_URL" != "$OBP_API_URL" ]; then
-    echo -e "${BLUE}  OBP_API_URL rewritten for container networking:${NC}"
-    echo "    host: $OBP_API_URL"
-    echo "    container: $CONTAINER_OBP_API_URL"
+# Use --network host so the container shares the host's network namespace.
+# This means 127.0.0.1 inside the container IS the host's loopback — OBP is
+# directly reachable without any address translation.
+#
+# KC_DB_URL may contain host.docker.internal (written for bridge-mode Docker).
+# Rewrite it to localhost so Postgres is reachable via the host's loopback.
+CONTAINER_KC_DB_URL="${KC_DB_URL//host.docker.internal/localhost}"
+if [ "$CONTAINER_KC_DB_URL" != "$KC_DB_URL" ]; then
+    echo -e "${BLUE}  KC_DB_URL rewritten for host network mode:${NC}"
+    echo "    .env:      $KC_DB_URL"
+    echo "    container: $CONTAINER_KC_DB_URL"
 fi
 
 # Container environment variables
@@ -256,14 +260,16 @@ CONTAINER_ENV_VARS=(
     "-e" "KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}"
     "-e" "KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}"
     "-e" "KC_DB=postgres"
-    "-e" "KC_DB_URL=$KC_DB_URL"
+    "-e" "KC_DB_URL=$CONTAINER_KC_DB_URL"
     "-e" "KC_DB_USERNAME=$KC_DB_USERNAME"
     "-e" "KC_DB_PASSWORD=$KC_DB_PASSWORD"
-    "-e" "OBP_API_URL=$CONTAINER_OBP_API_URL"
+    "-e" "OBP_API_URL=$OBP_API_URL"
     "-e" "OBP_API_USERNAME=$OBP_API_USERNAME"
     "-e" "OBP_API_PASSWORD=$OBP_API_PASSWORD"
     "-e" "OBP_API_CONSUMER_KEY=$OBP_API_CONSUMER_KEY"
     "-e" "OBP_AUTHUSER_PROVIDER=$OBP_AUTHUSER_PROVIDER"
+    # Move Keycloak off port 8080 to avoid conflicting with OBP on the shared host network
+    "-e" "KC_HTTP_PORT=${KEYCLOAK_HTTP_PORT:-7787}"
     "-e" "KC_HOSTNAME_STRICT=${KC_HOSTNAME_STRICT:-false}"
     "-e" "KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}"
     "-e" "KC_HEALTH_ENABLED=${KC_HEALTH_ENABLED:-true}"
@@ -272,13 +278,11 @@ CONTAINER_ENV_VARS=(
     "-e" "FORGOT_PASSWORD_URL=${FORGOT_PASSWORD_URL:-}"
 )
 
-# Start container
+# Start container with host networking — no port mapping needed, Keycloak binds
+# directly to host ports (HTTP: ${KEYCLOAK_HTTP_PORT:-7787}, HTTPS: 8443, mgmt: 9000)
 docker run -d \
     --name "$CONTAINER_NAME" \
-    -p "${KEYCLOAK_HTTP_PORT:-7787}:8080" \
-    -p "${KEYCLOAK_HTTPS_PORT:-8443}:8443" \
-    -p "${KEYCLOAK_MGMT_PORT:-9000}:9000" \
-    --add-host=host.docker.internal:host-gateway \
+    --network host \
     "${CONTAINER_ENV_VARS[@]}" \
     "$IMAGE_TAG" > /dev/null 2>&1
 

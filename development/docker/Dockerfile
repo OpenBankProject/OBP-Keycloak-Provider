@@ -11,8 +11,10 @@
 #  - OBP themes are always included. Activate the 'obp' login theme via the
 #    Admin Console: Realm Settings > Themes > Login Theme.
 #
-# Build arguments (defaults chosen to match development state):
-ARG KEYCLOAK_VERSION=26.5.1
+# Keycloak version — must be passed explicitly. The canonical version is defined in
+# KEYCLOAK_VERSION in .github/workflows/build_container_main_branch_themed.yml.
+# Pass with: --build-arg KEYCLOAK_VERSION=<version>
+ARG KEYCLOAK_VERSION
 
 ARG BUILD_TIMESTAMP
 ARG JAR_CHECKSUM

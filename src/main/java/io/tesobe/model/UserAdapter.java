@@ -57,10 +57,6 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         // entity.getId() is already a String (UUID), no conversion needed
         this.keycloakId = StorageId.keycloakId(model, entity.getId());
 
-        // Clear any existing federated storage data to ensure database is source of truth
-        clearFederatedStorageAttributes();
-
-        // Add timestamp to ensure fresh data retrieval
         log.infof(
             "UserAdapter initialized at %d for user: %s (user_id: %s)",
             System.currentTimeMillis(),
@@ -81,8 +77,8 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     @Override
     public String getUsername() {
         String value = entity.getUsername();
-        log.infof(
-            "getUsername() for user %s returning DATABASE value: '%s'",
+        log.debugf(
+            "getUsername() for user %s returning API value: '%s'",
             value,
             value
         );
@@ -92,8 +88,8 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     @Override
     public String getEmail() {
         String value = entity.getEmail();
-        log.infof(
-            "getEmail() for user %s returning DATABASE value: '%s'",
+        log.debugf(
+            "getEmail() for user %s returning API value: '%s'",
             getUsername(),
             value
         );
@@ -103,8 +99,8 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     @Override
     public String getFirstName() {
         String value = entity.getFirstName();
-        log.infof(
-            "getFirstName() for user %s returning DATABASE value: '%s'",
+        log.debugf(
+            "getFirstName() for user %s returning API value: '%s'",
             getUsername(),
             value
         );
@@ -114,8 +110,8 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     @Override
     public String getLastName() {
         String value = entity.getLastName();
-        log.infof(
-            "getLastName() for user %s returning DATABASE value: '%s'",
+        log.debugf(
+            "getLastName() for user %s returning API value: '%s'",
             getUsername(),
             value
         );
@@ -130,6 +126,13 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     @Override
     public boolean isEnabled() {
         return Boolean.TRUE.equals(entity.getValidated());
+    }
+
+    @Override
+    public Long getCreatedTimestamp() {
+        // OBP API does not expose an account creation date.
+        // Return current time so the admin console shows a valid date rather than "Invalid Date".
+        return System.currentTimeMillis();
     }
 
     // Custom methods for password validation
@@ -204,8 +207,8 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
                 }
                 value = null;
         }
-        log.infof(
-            "getFirstAttribute(%s) for user %s returning DATABASE value: '%s'",
+        log.debugf(
+            "getFirstAttribute(%s) for user %s returning API value: '%s'",
             name,
             getUsername(),
             value
@@ -215,7 +218,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public Map<String, List<String>> getAttributes() {
-        log.infof("getAttributes() called for user: %s", getUsername());
+        log.debugf("getAttributes() called for user: %s", getUsername());
 
         // Check what federated storage contains before we return database-only values
         Map<String, List<String>> federatedAttributes = super.getAttributes();
@@ -397,7 +400,10 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public Stream<String> getRequiredActionsStream() {
-        return super.getRequiredActionsStream();
+        // Database is source of truth — never surface stored required actions such as
+        // UPDATE_PROFILE from federated storage, as users cannot update their profile
+        // through Keycloak and the form would appear on every login with no way to dismiss it.
+        return Stream.empty();
     }
 
     @Override
