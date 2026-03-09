@@ -1,6 +1,6 @@
 name: Build and publish container main - themed
 
-on: [push]
+on: [push, workflow_dispatch]
 
 env:
   DOCKER_HUB_ORGANIZATION: ${{ vars.DOCKER_HUB_ORGANIZATION }}
@@ -28,7 +28,9 @@ jobs:
             echo Building container image for branch ${{ github.ref }} done
           fi
       - name: Push container image
-        if: ${{ github.secrets.DOCKER_HUB_USERNAME }}
+
+        if: vars.DEPLOY_CONTAINERS == 'true'
+
         run: |
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin docker.io
           docker push docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }} --all-tags
@@ -36,11 +38,13 @@ jobs:
       - uses: sigstore/cosign-installer@main
 
       - name: Write signing key to disk (only needed for `cosign sign --key`)
-        if: ${{ github.secrets.DOCKER_HUB_USERNAME }}
+
+        if: vars.DEPLOY_CONTAINERS == 'true'
         run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
 
       - name: Sign container image
-        if: ${{ github.secrets.DOCKER_HUB_USERNAME }}
+        if: vars.DEPLOY_CONTAINERS == 'true'
+
         run: |
           cosign sign -y --key cosign.key \
             docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:main
