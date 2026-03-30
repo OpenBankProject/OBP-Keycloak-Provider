@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 env:
   DOCKER_HUB_ORGANIZATION: ${{ vars.DOCKER_HUB_ORGANIZATION }}
   DOCKER_HUB_REPOSITORY: obp-keycloak
+  KEYCLOAK_VERSION: ${{ vars.KEYCLOAK_VERSION }}
 
 jobs:
   build:
