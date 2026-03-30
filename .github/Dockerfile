@@ -42,6 +42,7 @@ RUN echo "Build timestamp: ${BUILD_TIMESTAMP}" > /tmp/build-info.txt && \
     echo "JAR checksum: ${JAR_CHECKSUM}" >> /tmp/build-info.txt
 
 # === Stage 2: Build Keycloak with the provider JAR ===
+ARG KEYCLOAK_VERSION
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 
 ENV KC_HEALTH_ENABLED=true
@@ -67,6 +68,7 @@ RUN /opt/keycloak/bin/kc.sh build
 
 # === Final Runtime Image ===
 # Use the same Keycloak base image for the final runtime image
+ARG KEYCLOAK_VERSION
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 
 COPY --from=builder /opt/keycloak/ /opt/keycloak/

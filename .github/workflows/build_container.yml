@@ -21,15 +21,14 @@ jobs:
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo Building container image for main branch
-            docker build . --file .github/Dockerfile --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${GITHUB_REF##*/}  --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:main --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:latest
+            docker build . --file .github/Dockerfile --build-arg KEYCLOAK_VERSION=${{ env.KEYCLOAK_VERSION }} --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${GITHUB_REF##*/}  --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:main --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:latest
             echo Building container image for main branch done
           else
             echo Building container image for branch ${{ github.ref }}
-            docker build . --file .github/Dockerfile --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${GITHUB_REF##*/}  --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ steps.extract_branch.outputs.branch }}
+            docker build . --file .github/Dockerfile --build-arg KEYCLOAK_VERSION=${{ env.KEYCLOAK_VERSION }} --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${GITHUB_REF##*/}  --tag docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${{ steps.extract_branch.outputs.branch }}
             echo Building container image for branch ${{ github.ref }} done
           fi
       - name: Push container image
-
         if: vars.DEPLOY_CONTAINERS == 'true'
 
         run: |
@@ -37,7 +36,6 @@ jobs:
           docker push docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }} --all-tags
           echo pushing container image done
       - uses: sigstore/cosign-installer@main
-
       - name: Write signing key to disk (only needed for `cosign sign --key`)
 
         if: vars.DEPLOY_CONTAINERS == 'true'
@@ -53,6 +51,3 @@ jobs:
             docker.io/${{ env.DOCKER_HUB_ORGANIZATION }}/${{ env.DOCKER_HUB_REPOSITORY }}:${GITHUB_REF##*/}
         env:
           COSIGN_PASSWORD: "${{secrets.COSIGN_PASSWORD}}"
-
-
-
