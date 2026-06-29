@@ -23,7 +23,6 @@ public class KcUserStorageProvider
     implements
         UserStorageProvider,
         UserLookupProvider,
-        UserRegistrationProvider,
         UserQueryProvider,
         CredentialInputUpdater,
         CredentialInputValidator,
@@ -43,7 +42,7 @@ public class KcUserStorageProvider
         this.session = session;
         this.model = model;
         this.apiClient = apiClient;
-        log.info("OBP User Storage Provider initialized (API mode)");
+        log.debug("OBP User Storage Provider initialized (API mode)");
     }
 
     // -------------------------------------------------------------------------
@@ -52,7 +51,7 @@ public class KcUserStorageProvider
 
     @Override
     public void close() {
-        log.info("OBP User Storage Provider closed");
+        log.debug("OBP User Storage Provider closed");
     }
 
     @Override
@@ -84,7 +83,7 @@ public class KcUserStorageProvider
     @Override
     public UserModel getUserById(RealmModel realm, String id) {
         String externalId = StorageId.externalId(id);
-        log.infof("getUserById() called: %s (external: %s)", id, externalId);
+        log.debugf("getUserById() called: %s (external: %s)", id, externalId);
         try {
             KcUserEntity entity = apiClient.getUserById(externalId);
             if (entity == null) {
@@ -100,10 +99,10 @@ public class KcUserStorageProvider
 
     @Override
     public UserModel getUserByUsername(RealmModel realm, String username) {
-        log.infof("getUserByUsername() called: %s", username);
+        log.debugf("getUserByUsername() called: %s", username);
         KcUserEntity entity = apiClient.getUserByUsername(username);
         if (entity == null) {
-            log.infof("User not found by username: %s", username);
+            log.debugf("User not found by username: %s", username);
             return null;
         }
         return new UserAdapter(session, realm, model, entity);
@@ -111,29 +110,9 @@ public class KcUserStorageProvider
 
     @Override
     public UserModel getUserByEmail(RealmModel realm, String email) {
-        log.warnf("getUserByEmail() called for '%s' — email-based lookup is not supported " +
+        log.debugf("getUserByEmail() called for '%s' — email-based lookup is not supported " +
             "in OBP API mode. Returning null.", email);
         return null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Registration (disabled — OBP API is read-only from Keycloak's perspective)
-    // -------------------------------------------------------------------------
-
-    @Override
-    public UserModel addUser(RealmModel realm, String username) {
-        log.errorf("addUser() called for username '%s' — user creation is not supported. " +
-            "Users must be created in OBP directly.", username);
-        throw new UnsupportedOperationException(
-            "User creation is not supported. Users must be created through OBP.");
-    }
-
-    @Override
-    public boolean removeUser(RealmModel realm, UserModel user) {
-        log.warnf("removeUser() called for '%s' — user deletion is not supported.",
-            user.getUsername());
-        throw new UnsupportedOperationException(
-            "User deletion is not supported. Users must be removed through OBP.");
     }
 
     // -------------------------------------------------------------------------
@@ -148,47 +127,47 @@ public class KcUserStorageProvider
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
         boolean supported = supportsCredentialType(credentialType);
-        log.warnf("isConfiguredFor() — user: %s, credentialType: %s → %b",
+        log.debugf("isConfiguredFor() — user: %s, credentialType: %s → %b",
             user.getUsername(), credentialType, supported);
         return supported;
     }
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput input) {
-        log.warnf(">>> isValid() called for user: %s, credentialType: %s <<<",
+        log.debugf(">>> isValid() called for user: %s, credentialType: %s <<<",
             user.getUsername(), input.getType());
 
         if (!supportsCredentialType(input.getType())) {
-            log.warnf("isValid() — unsupported credential type: %s for user: %s",
+            log.debugf("isValid() — unsupported credential type: %s for user: %s",
                 input.getType(), user.getUsername());
             return false;
         }
 
         String rawPassword = input.getChallengeResponse();
         if (rawPassword == null || rawPassword.trim().isEmpty()) {
-            log.warnf("isValid() — empty or null password for user: %s", user.getUsername());
+            log.debugf("isValid() — empty or null password for user: %s", user.getUsername());
             return false;
         }
 
         boolean valid = apiClient.verifyUserCredentials(user.getUsername(), rawPassword) != null;
         if (valid) {
-            log.warnf("isValid() — password validation SUCCESSFUL for user: %s", user.getUsername());
+            log.debugf("isValid() — password validation SUCCESSFUL for user: %s", user.getUsername());
         } else {
-            log.warnf("isValid() — password validation FAILED for user: %s", user.getUsername());
+            log.debugf("isValid() — password validation FAILED for user: %s", user.getUsername());
         }
         return valid;
     }
 
     @Override
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
-        log.warnf("updateCredential() called for user '%s' — password updates are not supported. " +
+        log.debugf("updateCredential() called for user '%s' — password updates are not supported. " +
             "Use OBP to change passwords.", user.getUsername());
         return false;
     }
 
     @Override
     public void disableCredentialType(RealmModel realm, UserModel user, String credentialType) {
-        log.warnf("disableCredentialType() called for user '%s', type '%s' — not supported.",
+        log.debugf("disableCredentialType() called for user '%s', type '%s' — not supported.",
             user.getUsername(), credentialType);
     }
 
@@ -216,7 +195,7 @@ public class KcUserStorageProvider
         Integer first,
         Integer max
     ) {
-        log.infof("searchForUserStream() with params: %s", params);
+        log.debugf("searchForUserStream() with params: %s", params);
 
         if (params == null || params.isEmpty()) {
             return getAllUsers(realm, first, max);
@@ -267,7 +246,7 @@ public class KcUserStorageProvider
     private Stream<UserModel> getAllUsers(RealmModel realm, Integer first, Integer max) {
         int offset = first != null && first >= 0 ? first : 0;
         int limit = max != null && max >= 0 ? max : 0;
-        log.infof("getAllUsers() for synchronisation: offset=%d, limit=%d", offset, limit);
+        log.debugf("getAllUsers() for synchronisation: offset=%d, limit=%d", offset, limit);
 
         List<KcUserEntity> entities = apiClient.listUsers(offset, limit);
         return entities.stream()

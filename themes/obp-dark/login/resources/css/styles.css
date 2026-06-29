@@ -1,8 +1,27 @@
+/* OBP Keycloak Dark Theme
+ *
+ * Palette sourced from the OBP API sandbox portal, theme "obptheme" in dark mode
+ * (https://apisandbox-portal.openbankproject.com — <html data-theme="obptheme"
+ * data-mode="dark">). The portal's "primary" scale is a desaturated navy/purple
+ * surface ramp; "secondary" is the OBP green accent. OKLCH source values were
+ * converted to sRGB hex.
+ */
+:root {
+  --obp-bg:         #0a0917; /* primary-950  — page background        */
+  --obp-card:       #141423; /* primary-800  — elevated login card    */
+  --obp-input:      #0a0917; /* primary-950  — recessed input fields  */
+  --obp-border:     #23242f; /* primary-500  — subtle borders         */
+  --obp-text:       #fafafa; /* surface-50   — primary text           */
+  --obp-text-muted: #a1a1a1; /* surface-400  — labels / secondary     */
+  --obp-accent:     #54b167; /* secondary-500 — OBP green (CTA/links) */
+  --obp-accent-hov: #78bf86; /* secondary-400 — accent hover          */
+}
+
 @media (min-width: 768px) {
   .login-pf-page .card-pf {
     max-width: 38%;
     margin-inline: auto;
-    color: #aaa;
+    color: var(--obp-text-muted);
   }
 }
 
@@ -11,84 +30,186 @@
 }
 
 .pf-c-form__label-text {
-  color: #aaa;
+  color: var(--obp-text-muted);
 }
 
 .login-pf body {
-  background: #030303;
+  background: var(--obp-bg);
 }
 
 body {
-  color: #000;
+  color: var(--obp-text);
 }
 
 .card-pf {
-  background: #000;
+  background: var(--obp-card);
+  /* Positioning context for the locale selector floated to the top-right below */
+  position: relative;
 }
 
 .pf-c-input-group {
-  --pf-c-input-group--BackgroundColor: #fff;
+  --pf-c-input-group--BackgroundColor: var(--obp-input);
 }
 
 .pf-c-form-control {
-  --pf-c-form-control--BorderTopColor: #0a0917;
-  --pf-c-form-control--BorderRightColor: #0a0917;
-  --pf-c-form-control--BorderBottomColor: #0a0917;
-  --pf-c-form-control--BorderLeftColor: #0a0917;
-  --pf-c-form-control--BackgroundColor: #0a0917;
+  --pf-c-form-control--BorderTopColor: var(--obp-border);
+  --pf-c-form-control--BorderRightColor: var(--obp-border);
+  --pf-c-form-control--BorderBottomColor: var(--obp-border);
+  --pf-c-form-control--BorderLeftColor: var(--obp-border);
+  --pf-c-form-control--BackgroundColor: var(--obp-input);
   --pf-c-form-control--Height: 49px;
+  --pf-c-form-control--hover--BorderBottomColor: var(--obp-accent);
+  color: var(--obp-text);
 }
 
-.pf-c-form-control {
-  --pf-c-form-control--hover--BorderBottomColor: #336841;
-}
-
-.pf-c-form-control {
-  color: #aaaaaa;
+/* Primary action (Sign In) — OBP green */
+.pf-c-button.pf-m-primary {
+  color: var(--obp-bg);
+  background-color: var(--obp-accent);
 }
 
 .pf-c-button.pf-m-primary:hover {
-  --pf-c-button--m-primary--Color: #000;
-  --pf-c-button--m-primary--BackgroundColor: #b5b5b5;
+  --pf-c-button--m-primary--Color: var(--obp-bg);
+  --pf-c-button--m-primary--BackgroundColor: var(--obp-accent-hov);
+  background-color: var(--obp-accent-hov);
 }
 
+/* Password-visibility toggle inside the input group */
 .pf-c-button.pf-m-control {
-  background-color: #000;
+  background-color: var(--obp-input);
   border: unset;
+  /* Make the eye icon visible on the dark input (PatternFly defaults it dark) */
+  color: var(--obp-text-muted);
+}
+
+.pf-c-button.pf-m-control:hover,
+.pf-c-button.pf-m-control:focus {
+  color: var(--obp-accent);
+  background-color: var(--obp-input);
+}
+
+.pf-c-button.pf-m-control i,
+.pf-c-button.pf-m-control svg {
+  color: inherit;
+  fill: currentColor;
 }
 
 .pf-c-button.pf-m-control::after {
-  border-color: #0a0917;
+  border-color: var(--obp-border);
 }
 
-.pf-c-button.pf-m-primary {
-  color: #000;
-  background-color: #fff;
+/* Links (Forgot password, Register) */
+.login-pf-page a {
+  color: var(--obp-accent);
 }
 
-.pf-c-button:hover {
-  background-color: #b5b5b5 ;
+.login-pf-page a:hover {
+  color: var(--obp-accent-hov);
 }
 
 .obp-dark-footer {
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #222;
+  border-top: 1px solid var(--obp-border);
   text-align: center;
 }
 
 .obp-provider-info {
-  color: #777;
+  color: var(--obp-text-muted);
   font-size: 0.8rem;
   margin-bottom: 0.4rem;
 }
 
 .obp-copyright {
-  color: #555;
+  color: var(--obp-text-muted);
   font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .obp-version {
   opacity: 0.7;
   font-size: 0.7rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Language selector dropdown
+ *
+ * This theme sets `styles=css/styles.css`, which REPLACES the parent keycloak
+ * theme's `styles=css/login.css` rather than appending to it. That parent
+ * stylesheet is what normally keeps the locale menu collapsed
+ * (#kc-locale ul { display: none }) and opens it only on hover. Without it the
+ * language <ul> renders expanded and overlaps the login form, so credentials
+ * cannot be entered. Re-add the collapse behaviour here, styled for dark mode.
+ * ------------------------------------------------------------------------- */
+#kc-locale {
+  /* Float the language selector to the top-right of the card (the parent
+     keycloak login.css normally does this, but it isn't loaded here). */
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  width: auto;
+  text-align: right;
+  z-index: 50;
+}
+
+/* Toggle button — styled like the form's input controls */
+#kc-current-locale-link {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--obp-input);
+  color: var(--obp-text-muted);
+  border: 1px solid var(--obp-border);
+  border-radius: 3px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+#kc-current-locale-link:hover,
+#kc-locale-dropdown:focus-within #kc-current-locale-link {
+  border-color: var(--obp-accent);
+  color: var(--obp-text);
+}
+
+#kc-current-locale-link::after {
+  content: "\25be"; /* ▾ */
+  margin-left: 0.4rem;
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+
+#kc-locale ul {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 120px;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  background-color: var(--obp-card);
+  border: 1px solid var(--obp-border);
+  border-radius: 3px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 100;
+}
+
+#kc-locale-dropdown:hover ul,
+#kc-locale-dropdown:focus-within ul {
+  display: block;
+}
+
+#kc-locale-dropdown a {
+  display: block;
+  padding: 6px 12px;
+  color: var(--obp-text-muted);
+  text-align: right;
+  text-decoration: none;
+}
+
+#kc-locale-dropdown a:hover {
+  background-color: var(--obp-border);
+  color: var(--obp-text);
 }

@@ -1,73 +1,17 @@
 <#import "template.ftl" as layout>
-<@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','email','firstName','lastName'); section>
+<#import "user-profile-commons.ftl" as userProfileCommons>
+<@layout.registrationLayout displayMessage=messagesPerField.exists('global') displayRequiredFields=true; section>
     <#if section = "header">
         ${msg("loginProfileTitle")}
     <#elseif section = "form">
         <form id="kc-update-profile-form" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
-            <div class="${properties.kcFormGroupClass!}">
-                <div class="${properties.kcLabelWrapperClass!}">
-                    <label for="username" class="${properties.kcLabelClass!}">${msg("username")}</label>
-                </div>
-                <div class="${properties.kcInputWrapperClass!}">
-                    <input type="text" id="username" name="username" value="${(user.username!'')}" class="${properties.kcInputClass!}"
-                           aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"
-                           <#if realm.registrationEmailAsUsername>readonly</#if>/>
 
-                    <#if messagesPerField.existsError('username')>
-                        <span id="input-error-username" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('username'))?no_esc}
-                        </span>
-                    </#if>
-                </div>
-            </div>
-
-            <div class="${properties.kcFormGroupClass!}">
-                <div class="${properties.kcLabelWrapperClass!}">
-                    <label for="email" class="${properties.kcLabelClass!}">${msg("email")}</label>
-                </div>
-                <div class="${properties.kcInputWrapperClass!}">
-                    <input type="text" id="email" name="email" value="${(user.email!'')}" class="${properties.kcInputClass!}"
-                           aria-invalid="<#if messagesPerField.existsError('email')>true</#if>"/>
-
-                    <#if messagesPerField.existsError('email')>
-                        <span id="input-error-email" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('email'))?no_esc}
-                        </span>
-                    </#if>
-                </div>
-            </div>
-
-            <div class="${properties.kcFormGroupClass!}">
-                <div class="${properties.kcLabelWrapperClass!}">
-                    <label for="firstName" class="${properties.kcLabelClass!}">${msg("firstName")}</label>
-                </div>
-                <div class="${properties.kcInputWrapperClass!}">
-                    <input type="text" id="firstName" name="firstName" value="${(user.firstName!'')}" class="${properties.kcInputClass!}"
-                           aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"/>
-
-                    <#if messagesPerField.existsError('firstName')>
-                        <span id="input-error-firstName" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('firstName'))?no_esc}
-                        </span>
-                    </#if>
-                </div>
-            </div>
-
-            <div class="${properties.kcFormGroupClass!}">
-                <div class="${properties.kcLabelWrapperClass!}">
-                    <label for="lastName" class="${properties.kcLabelClass!}">${msg("lastName")}</label>
-                </div>
-                <div class="${properties.kcInputWrapperClass!}">
-                    <input type="text" id="lastName" name="lastName" value="${(user.lastName!'')}" class="${properties.kcInputClass!}"
-                           aria-invalid="<#if messagesPerField.existsError('lastName')>true</#if>"/>
-
-                    <#if messagesPerField.existsError('lastName')>
-                        <span id="input-error-lastName" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('lastName'))?no_esc}
-                        </span>
-                    </#if>
-                </div>
-            </div>
+            <#-- Render fields from the declarative user profile (profile bean). This
+                 prefills values from the user, respects editUsernameAllowed (the
+                 username is shown read-only when editing is disabled), and marks
+                 required attributes. Replaces the old hand-rolled fields that read
+                 legacy ${user.*} variables no longer populated by Keycloak. -->
+            <@userProfileCommons.userProfileFormFields/>
 
             <div class="${properties.kcFormGroupClass!}">
                 <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
@@ -78,7 +22,7 @@
                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
                     <#if isAppInitiatedAction??>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" type="submit" value="${msg("doSubmit")}" />
-                        <button class="${properties.kcButtonClass!} ${properties.kcButtonDefaultClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" type="submit" name="cancel-aia" value="true" />${msg("doCancel")}</button>
+                        <button class="${properties.kcButtonClass!} ${properties.kcButtonDefaultClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" type="submit" name="cancel-aia" value="true" formnovalidate>${msg("doCancel")}</button>
                     <#else>
                         <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" type="submit" value="${msg("doSubmit")}" />
                     </#if>

@@ -92,9 +92,9 @@ docker build --no-cache --build-arg THEMED=true -t obp-keycloak:themed -f develo
 
 The unified Dockerfile accepts several build-time arguments (passed with `--build-arg`). The provider JAR must be pre-built on the host before running `docker build` (the deployment script handles this automatically).
 
-- `KEYCLOAK_VERSION` (default: `26.5.1`) — the Keycloak base image tag used in the builder and final images. Example:
+- `KEYCLOAK_VERSION` (default: `26.5.3`) — the Keycloak base image tag used in the builder and final images. Example:
 ```bash
---build-arg KEYCLOAK_VERSION=26.5.1
+--build-arg KEYCLOAK_VERSION=26.5.3
 ```
 
 - `THEMED` (default: `false`) — controls whether the Dockerfile retains the `themes/obp` and `themes/obp-dark` directories in the final image. Set to `true` to keep themes in the image (the deployment script passes this when `--themed` is used):
@@ -180,12 +180,16 @@ docker rm obp-keycloak-local
 docker ps --filter name=obp-keycloak-local
 ```
 
+> **Tuning log level/format, rotation, and identifying the running build:**
+> see [Logging & observability](../docs/ONBOARDING.md#6-logging--observability)
+> (`KC_LOG_LEVEL`, `KC_LOG_CONSOLE_OUTPUT`, `DOCKER_LOG_MAX_*`, startup build banner).
+
 ---
 
 ## Themed Deployments
 
 ### Prerequisites
-- `themes/obp/theme.properties` - Theme configuration
+- `themes/obp/login/theme.properties` - Theme configuration (Keycloak reads the per-type file)
 - `themes/obp/login/login.ftl` - Login template
 - `themes/obp/login/template.ftl` - Base template
 - Optional: CSS, images, message files in `themes/obp/login/resources/`
@@ -231,7 +235,7 @@ docker system prune -f
 find themes/obp -type f
 
 # Verify theme configuration
-cat themes/obp/theme.properties
+cat themes/obp/login/theme.properties
 
 # Try standard deployment first
 ./development/run-local-postgres-cicd.sh

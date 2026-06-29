@@ -1,7 +1,7 @@
 # Development Dockerfile for OBP Keycloak Provider
 #
 # Usage:
-#   docker build --build-arg KEYCLOAK_VERSION=26.5.1 -t obp-keycloak:latest .
+#   docker build --build-arg KEYCLOAK_VERSION=26.5.3 -t obp-keycloak:latest .
 #
 # Notes:
 #  - The provider JAR must be pre-built on the host before running docker build
@@ -21,6 +21,10 @@ ARG JAR_CHECKSUM
 
 # === Keycloak Builder Stage ===
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} as builder
+
+# Tag every image layer this project produces so the deploy script can prune
+# only OUR dangling leftovers (label-filtered) without touching other projects.
+LABEL com.openbankproject.image=obp-keycloak-provider
 
 # Bring build args into this stage for cache invalidation metadata
 ARG BUILD_TIMESTAMP
@@ -55,6 +59,9 @@ RUN /opt/keycloak/bin/kc.sh build
 
 # === Final Runtime Image ===
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+
+# Same project label on the final image (and thus on prior orphaned builds).
+LABEL com.openbankproject.image=obp-keycloak-provider
 
 # Bring the prebuilt Keycloak server into the final image
 COPY --from=builder /opt/keycloak/ /opt/keycloak/

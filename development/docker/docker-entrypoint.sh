@@ -2,6 +2,15 @@
 # Custom entrypoint wrapper for OBP Keycloak Provider
 # Injects runtime environment variables into theme configuration before starting Keycloak.
 
+# --- Build/version banner ---
+# Surface which build is running so logs can be correlated to a specific image
+# during deployment/maintenance (build-info.txt is baked in at image build time).
+if [ -f /opt/keycloak/build-info.txt ]; then
+    echo "[OBP Entrypoint] ===== OBP Keycloak Provider build ====="
+    sed 's/^/[OBP Entrypoint] /' /opt/keycloak/build-info.txt
+    echo "[OBP Entrypoint] ======================================="
+fi
+
 # --- Forgot Password URL override ---
 # If FORGOT_PASSWORD_URL is set, inject it into all theme.properties files
 # so the "Forgot Password?" link points to a custom URL instead of Keycloak's default.

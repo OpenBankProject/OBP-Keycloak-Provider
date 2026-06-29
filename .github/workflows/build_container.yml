@@ -3,7 +3,11 @@ name: Build and publish container main - themed
 on: [push, workflow_dispatch]
 
 env:
-  DOCKER_HUB_ORGANIZATION: ${{ vars.DOCKER_HUB_ORGANIZATION }}
+  # Fall back to a placeholder org on forks that haven't set the
+  # DOCKER_HUB_ORGANIZATION repo variable, so the image tag stays valid and the
+  # build still runs (validates) instead of failing with "invalid reference
+  # format". Publishing is separately gated below on a real org being configured.
+  DOCKER_HUB_ORGANIZATION: ${{ vars.DOCKER_HUB_ORGANIZATION || 'obp' }}
   DOCKER_HUB_REPOSITORY: obp-keycloak
 
 jobs:
@@ -28,7 +32,7 @@ jobs:
             echo Building container image for branch ${{ github.ref }} done
           fi
       - name: Push container image
-        if: vars.DEPLOY_CONTAINERS == 'true'
+        if: vars.DEPLOY_CONTAINERS == 'true' && vars.DOCKER_HUB_ORGANIZATION != ''
 
         run: |
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin docker.io
@@ -37,11 +41,11 @@ jobs:
       - uses: sigstore/cosign-installer@main
       - name: Write signing key to disk (only needed for `cosign sign --key`)
 
-        if: vars.DEPLOY_CONTAINERS == 'true'
+        if: vars.DEPLOY_CONTAINERS == 'true' && vars.DOCKER_HUB_ORGANIZATION != ''
         run: echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
 
       - name: Sign container image
-        if: vars.DEPLOY_CONTAINERS == 'true'
+        if: vars.DEPLOY_CONTAINERS == 'true' && vars.DOCKER_HUB_ORGANIZATION != ''
 
         run: |
           cosign sign -y --key cosign.key \

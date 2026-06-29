@@ -106,10 +106,10 @@ public class OBPApiClient {
      * Requires CanGetAnyUser role on the admin account.
      */
     public KcUserEntity getUserByUsername(String username) {
-        log.infof("getUserByUsername() via OBP API: %s", username);
+        log.debugf("getUserByUsername() via OBP API: %s", username);
         String path = "/obp/v6.0.0/users/provider/" + encode(config.getAuthUserProvider())
             + "/username/" + username;
-        log.infof("getUserByUsername() resolved path: %s", path);
+        log.debugf("getUserByUsername() resolved path: %s", path);
         return getUserFromPath(path);
     }
 
@@ -118,7 +118,7 @@ public class OBPApiClient {
      * Requires CanGetAnyUser role on the admin account.
      */
     public KcUserEntity getUserById(String userId) {
-        log.infof("getUserById() via OBP API: %s", userId);
+        log.debugf("getUserById() via OBP API: %s", userId);
         return getUserFromPath("/obp/v6.0.0/users/user-id/" + encode(userId));
     }
 
@@ -180,7 +180,7 @@ public class OBPApiClient {
     private static final long VERIFY_RETRY_DELAY_MS = 300;
 
     public KcUserEntity verifyUserCredentials(String username, String password) {
-        log.infof("verifyUserCredentials() via OBP API for user: %s", username);
+        log.debugf("verifyUserCredentials() via OBP API for user: %s", username);
         try {
             ObjectNode body = mapper.createObjectNode();
             body.put("username", username);
@@ -222,7 +222,7 @@ public class OBPApiClient {
                 return null;
             }
 
-            log.infof("Credential verification SUCCESSFUL for user: %s", username);
+            log.debugf("Credential verification SUCCESSFUL for user: %s", username);
             return entity;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -242,7 +242,7 @@ public class OBPApiClient {
      * Fetches OIDC client details. Requires CanGetOidcClient role.
      */
     public JsonNode getOidcClient(String clientId) {
-        log.infof("getOidcClient() via OBP API: %s", clientId);
+        log.debugf("getOidcClient() via OBP API: %s", clientId);
         try {
             HttpResponse<String> resp = callWithRetry(
                 "GET", "/obp/v6.0.0/oidc/clients/" + encode(clientId), null);
@@ -293,7 +293,7 @@ public class OBPApiClient {
         try {
             HttpResponse<String> resp = callWithRetry("GET", path, null);
             if (resp == null || resp.statusCode() != 200) {
-                log.infof("getUserFromPath('%s') returned HTTP %s — %s",
+                log.debugf("getUserFromPath('%s') returned HTTP %s — %s",
                     path,
                     resp != null ? resp.statusCode() : "null",
                     resp != null ? resp.body() : "");

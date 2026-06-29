@@ -78,7 +78,7 @@ The script follows an 8-step pipeline:
 ## Theme Validation (--themed flag)
 
 **Themed Deployment Requirements**:
-- ✅ `themes/obp/theme.properties` with valid content
+- ✅ `themes/obp/login/theme.properties` with valid content
 - ✅ `themes/obp/login/` directory structure
 - ✅ Required templates: `login.ftl`, `template.ftl`
 - ✅ Optional: CSS files, images, message files

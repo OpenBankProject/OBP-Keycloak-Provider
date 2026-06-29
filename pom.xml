@@ -19,7 +19,7 @@
     <maven.compiler.target>17</maven.compiler.target>
     <!-- Local dev default. CI/CD overrides this via -Dversion.keycloak from KEYCLOAK_VERSION
          defined in .github/workflows/build_container_main_branch_themed.yml -->
-    <version.keycloak>26.5.1</version.keycloak>
+    <version.keycloak>26.5.3</version.keycloak>
     <version.compiler.maven.plugin>3.5.1</version.compiler.maven.plugin>
     <version.jakarta.persistence>3.1.0</version.jakarta.persistence>
     <version.surefire.plugin>3.0.0</version.surefire.plugin>

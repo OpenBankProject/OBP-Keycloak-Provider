@@ -13,7 +13,7 @@ This document describes the end-to-end process for building and running a locall
 |   Host Machine    |        |   Docker Container          |        |   PostgreSQL (host) |
 |                   |        |   (obp-keycloak-local)      |        |                     |
 |  .env             |        | +-------------------------+ |        | keycloakdb          |
-|  themes/obp/      | -----> | | Keycloak 26.5.1         | | <----> | (realm data,        |
+|  themes/obp/      | -----> | | Keycloak 26.5.3         | | <----> | (realm data,        |
 |  themes/obp-dark/ |  build | |   + obp-keycloak-       | |  JDBC  |  clients, tokens)   |
 |  src/ + pom.xml   |        | |     provider.jar        | |        +---------------------+
 |                   |        | |   + obp theme           | |
@@ -82,7 +82,7 @@ The deployment script executes an 8-step pipeline:
   - `OBP_AUTHUSER_PROVIDER` (mandatory provider filter)
 - **Themed-specific**: runs `validate_theme_files()` which verifies:
   - `themes/obp/` directory exists
-  - `themes/obp/theme.properties` contains `parent=base` and `styles=`
+  - `themes/obp/login/theme.properties` contains `parent=base` and `styles=`
   - `themes/obp/login/` exists with `login.ftl` and `template.ftl`
   - Optionally checks for CSS, images, and i18n message files
 
@@ -122,7 +122,7 @@ docker build --no-cache \
 #### Dockerfile Multi-Stage Build
 
 ```
-  Stage 1: builder (quay.io/keycloak/keycloak:26.5.1)
+  Stage 1: builder (quay.io/keycloak/keycloak:26.5.3)
   +--------------------------------------------------+
   |  Generate self-signed SSL keystore               |
   |  COPY obp-keycloak-provider.jar -> providers/    |
@@ -131,7 +131,7 @@ docker build --no-cache \
   +--------------------------------------------------+
                         |
                         v
-  Stage 2: final (quay.io/keycloak/keycloak:26.5.1)
+  Stage 2: final (quay.io/keycloak/keycloak:26.5.3)
   +--------------------------------------------------+
   |  COPY --from=builder /opt/keycloak/              |
   |  COPY themes/obp/      -> themes/obp/            |
@@ -162,7 +162,7 @@ The container is launched with:
 - Polls `https://<host>:<mgmt_port>/health/ready` every 2 seconds, up to 120 seconds.
 - **Themed-specific** post-readiness checks:
   - Tests if theme resources are accessible at `/resources/obp/`
-  - Verifies theme files exist inside the container at `/opt/keycloak/themes/obp/theme.properties`
+  - Verifies theme files exist inside the container at `/opt/keycloak/themes/obp/login/theme.properties`
 
 ---
 

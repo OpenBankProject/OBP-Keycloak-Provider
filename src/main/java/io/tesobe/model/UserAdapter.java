@@ -38,7 +38,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     ) {
         super(session, realm, model);
         this.entity = entity;
-        log.infof(
+        log.debugf(
             "UserAdapter created for user: %s with database values - firstName: '%s', lastName: '%s', email: '%s'",
             entity.getUsername(),
             entity.getFirstName(),
@@ -57,7 +57,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         // entity.getId() is already a String (UUID), no conversion needed
         this.keycloakId = StorageId.keycloakId(model, entity.getId());
 
-        log.infof(
+        log.debugf(
             "UserAdapter initialized at %d for user: %s (user_id: %s)",
             System.currentTimeMillis(),
             getUsername(),
@@ -146,7 +146,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     // Password setters - disabled for read-only approach
     public void setPassword(String password) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setPassword() called for user %s. " +
                 "Database is read-only. Use external tools to update passwords.",
             getUsername()
@@ -155,7 +155,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
     }
 
     public void setSalt(String salt) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setSalt() called for user %s. " +
                 "Database is read-only. Use external tools to update passwords.",
             getUsername()
@@ -198,7 +198,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
                 // and log a warning if it does
                 String federatedValue = super.getFirstAttribute(name);
                 if (federatedValue != null) {
-                    log.warnf(
+                    log.debugf(
                         "FEDERATED STORAGE LEAK: Attribute %s='%s' found in federated storage for user %s but not in database. Returning null to enforce database-only policy.",
                         name,
                         federatedValue,
@@ -223,7 +223,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         // Check what federated storage contains before we return database-only values
         Map<String, List<String>> federatedAttributes = super.getAttributes();
         if (!federatedAttributes.isEmpty()) {
-            log.warnf(
+            log.debugf(
                 "FEDERATED STORAGE DETECTED: Found %d federated attributes for user %s: %s",
                 federatedAttributes.size(),
                 getUsername(),
@@ -301,7 +301,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setUsername(String username) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setUsername() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -311,7 +311,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setEmail(String email) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setEmail() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -321,7 +321,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setFirstName(String firstName) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setFirstName() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -331,7 +331,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setLastName(String lastName) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setLastName() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -341,7 +341,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setEmailVerified(boolean verified) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setEmailVerified() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -351,7 +351,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setEnabled(boolean enabled) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setEnabled() called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             getUsername()
@@ -361,7 +361,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setSingleAttribute(String name, String value) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setSingleAttribute(%s, %s) called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             name,
@@ -373,7 +373,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void setAttribute(String name, List<String> values) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: setAttribute(%s, %s) called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             name,
@@ -385,7 +385,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     @Override
     public void removeAttribute(String name) {
-        log.warnf(
+        log.debugf(
             "OPERATION DISABLED: removeAttribute(%s) called for user %s. " +
                 "Database is read-only. Use external tools to update user data.",
             name,
@@ -486,7 +486,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
      */
     private void clearFederatedStorageAttributes() {
         try {
-            log.infof(
+            log.debugf(
                 "CLEARING FEDERATED STORAGE for user: %s - Database values: firstName='%s', lastName='%s', email='%s'",
                 getUsername(),
                 entity.getFirstName(),
@@ -506,7 +506,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
             for (String attrName : coreAttributes) {
                 // Check what's currently in federated storage before clearing
                 String federatedValue = super.getFirstAttribute(attrName);
-                log.infof(
+                log.debugf(
                     "Attribute %s: federated='%s', database='%s' for user %s",
                     attrName,
                     federatedValue,
@@ -516,14 +516,14 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
                 // Remove from federated storage - this calls the parent's method to actually clear it
                 super.removeAttribute(attrName);
-                log.infof(
+                log.debugf(
                     "Removed %s from federated storage for user %s",
                     attrName,
                     getUsername()
                 );
             }
 
-            log.infof(
+            log.debugf(
                 "FEDERATED STORAGE CLEARED for user: %s - Database is now source of truth",
                 getUsername()
             );
@@ -545,7 +545,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
      */
     public void forceRefreshFromDatabase() {
         try {
-            log.infof(
+            log.debugf(
                 "FORCING REFRESH from database for user: %s (user_id: %s)",
                 getUsername(),
                 entity.getId()
@@ -571,7 +571,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
                 super.removeAttribute(attr);
             }
 
-            log.infof("Force refresh completed for user: %s", getUsername());
+            log.debugf("Force refresh completed for user: %s", getUsername());
         } catch (Exception e) {
             log.errorf(
                 "Failed to force refresh for user %s: %s",
