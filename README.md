@@ -79,6 +79,26 @@ Click the [User federation](https://localhost:8443/admin/master/console/#/master
 
 ![KC providers](/docs/images/providers.png?raw=true "KC providers")
 
+## Identity Provider brokering (e.g. Google OIDC)
+
+Keycloak can also broker external identity providers (Google, etc.) alongside this
+federation provider. The two are complementary:
+
+- **User federation** (this provider) sources existing **OBP** users for lookup and
+  password authentication.
+- **Identity providers** let users sign in through an external IdP.
+
+On a user's *first* broker login, Keycloak materializes a local user and links the
+external identity to it. This provider is intentionally **not** a
+`UserRegistrationProvider`, so Keycloak stores brokered IdP users in **its own
+database** rather than attempting to create them in OBP. OBP users remain read-only
+(see [Provider Features](#provider-features)); brokered IdP users are managed in
+Keycloak.
+
+> If this provider advertised user registration, the first-broker-login flow would
+> route user creation to it and fail with `IDENTITY_PROVIDER_FIRST_LOGIN_ERROR`,
+> since OBP user creation is not supported from Keycloak.
+
 ## Documentation
 
 - [docs/ONBOARDING.md](docs/ONBOARDING.md) — local development onboarding (fresh-start guide)
