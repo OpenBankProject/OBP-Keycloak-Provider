@@ -1,6 +1,5 @@
 package io.tesobe.providers;
 
-import io.tesobe.config.OBPApiConfig;
 import java.util.List;
 import org.jboss.logging.Logger;
 import org.keycloak.component.ComponentModel;
@@ -15,27 +14,10 @@ public class KcUserStorageProviderFactory
     public static final String PROVIDER_ID = "obp-keycloak-provider";
 
     private static final Logger log = Logger.getLogger(KcUserStorageProviderFactory.class);
-    private static volatile boolean configurationValidated = false;
-    private static volatile OBPApiClient apiClient;
 
     @Override
     public KcUserStorageProvider create(KeycloakSession session, ComponentModel model) {
-        if (!configurationValidated) {
-            synchronized (this) {
-                if (!configurationValidated) {
-                    log.info("Validating OBP API configuration for OBP Keycloak Provider");
-                    OBPApiConfig.validateConfiguration();
-                    apiClient = new OBPApiClient(OBPApiConfig.getInstance());
-                    if (!apiClient.testConnection()) {
-                        log.warn("OBP API connection test failed at startup — provider registered " +
-                            "but authentication will fail until OBP API is reachable. " +
-                            "Check OBP_API_URL, OBP_API_USERNAME, OBP_API_PASSWORD, OBP_API_CONSUMER_KEY");
-                    }
-                    configurationValidated = true;
-                }
-            }
-        }
-        return new KcUserStorageProvider(session, model, apiClient);
+        return new KcUserStorageProvider(session, model, SharedOBPApiClient.get());
     }
 
     @Override

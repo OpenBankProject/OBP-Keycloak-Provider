@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.tesobe.config.OBPApiConfig;
 import io.tesobe.model.KcUserEntity;
+import io.tesobe.model.ObpClient;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -41,12 +42,15 @@ import org.jboss.logging.Logger;
  *       — verify user password; body: {"username","password","provider"}
  *
  *   GET  /obp/v6.0.0/oidc/clients/{CLIENT_ID}
- *       — verify OIDC client
+ *       — look up an OIDC client (an OBP Consumer; client_id = consumer key), without its secret
+ *
+ *   POST /obp/v6.0.0/oidc/clients/verify
+ *       — check a client secret; body: {"client_id","client_secret"}; response: {"valid": true|false, ...}
  *
  *   GET  /obp/v6.0.0/providers
  *       — list providers (optional)
  *
- * Required admin roles: CanGetAnyUser, CanVerifyUserCredentials, CanGetOidcClient
+ * Required admin roles: CanGetAnyUser, CanVerifyUserCredentials, CanGetOidcClient, CanVerifyOidcClient
  * Optional roles: CanGetProviders
  *
  * InterruptedException handling: every catch block re-interrupts the thread via
@@ -240,24 +244,78 @@ public class OBPApiClient {
 
     /**
      * Fetches OIDC client details. Requires CanGetOidcClient role.
+     * Logs name the Consumer by its consumer_id, never by the client_id (the Consumer's key).
      */
     public JsonNode getOidcClient(String clientId) {
-        log.infof("getOidcClient() via OBP API: %s", clientId);
         try {
             HttpResponse<String> resp = callWithRetry(
                 "GET", "/obp/v6.0.0/oidc/clients/" + encode(clientId), null);
             if (resp != null && resp.statusCode() == 200) {
-                return mapper.readTree(resp.body());
+                JsonNode json = mapper.readTree(resp.body());
+                log.infof("Found the OBP client of consumer_id %s", json.path("consumer_id").asText("unknown"));
+                return json;
             }
-            log.warnf("getOidcClient('%s') returned HTTP %s",
-                clientId, resp != null ? resp.statusCode() : "null");
+            log.warnf("Looking up an OBP client returned HTTP %s", resp != null ? resp.statusCode() : "null");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.warn("getOidcClient() interrupted for: " + clientId);
+            log.warn("Looking up an OBP client was interrupted");
         } catch (Exception e) {
-            log.error("Error getting OIDC client: " + clientId, e);
+            log.error("Error looking up an OBP client", e);
         }
         return null;
+    }
+
+    /**
+     * The OBP client (Consumer) with this client_id, or null when OBP has none (or cannot be reached).
+     * Requires CanGetOidcClient role.
+     */
+    public ObpClient getClient(String clientId) {
+        JsonNode json = getOidcClient(clientId);
+        if (json == null) return null;
+        List<String> redirectUris = new ArrayList<>();
+        JsonNode uris = json.path("redirect_uris");
+        if (uris.isArray()) uris.forEach(u -> redirectUris.add(u.asText()));
+        // grant_types is absent from an older OBP-API: then every grant, as before.
+        List<String> grantTypes = new ArrayList<>();
+        JsonNode grants = json.path("grant_types");
+        if (grants.isArray()) grants.forEach(g -> grantTypes.add(g.asText()));
+        else grantTypes.addAll(List.of("authorization_code", "refresh_token", "client_credentials"));
+        return new ObpClient(
+            json.path("client_id").asText(clientId),
+            json.path("client_name").asText(""),
+            json.path("consumer_id").asText(""),
+            List.copyOf(redirectUris),
+            json.path("enabled").asBoolean(false),
+            List.copyOf(grantTypes));
+    }
+
+    /**
+     * Whether OBP accepts this client secret for this client_id (an active Consumer with that secret).
+     * POST /obp/v6.0.0/oidc/clients/verify. Requires CanVerifyOidcClient role.
+     * Any failure to ask OBP counts as invalid. consumerId is only for the logs, which never show the client_id.
+     */
+    public boolean verifyClientSecret(String clientId, String consumerId, String clientSecret) {
+        if (clientId == null || clientSecret == null || clientSecret.isEmpty()) return false;
+        try {
+            ObjectNode body = mapper.createObjectNode();
+            body.put("client_id", clientId);
+            body.put("client_secret", clientSecret);
+            HttpResponse<String> resp = callWithRetry(
+                "POST", "/obp/v6.0.0/oidc/clients/verify", mapper.writeValueAsString(body));
+            if (resp == null || (resp.statusCode() != 200 && resp.statusCode() != 201)) {
+                log.warnf("Checking the client secret of consumer_id %s returned HTTP %s",
+                    consumerId, resp != null ? resp.statusCode() : "null");
+                return false;
+            }
+            return mapper.readTree(resp.body()).path("valid").asBoolean(false);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Checking the client secret of consumer_id " + consumerId + " was interrupted");
+            return false;
+        } catch (Exception e) {
+            log.error("Error checking the client secret of consumer_id " + consumerId, e);
+            return false;
+        }
     }
 
     /**
