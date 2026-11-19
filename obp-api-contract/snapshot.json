@@ -1,0 +1,200 @@
+{
+ "about": "Written by obp-api-contract/snapshot.py; do not edit by hand.",
+ "obp_api": {
+  "https://k8s.openbankproject.com": {
+   "version": "v6.0.0",
+   "git_commit": "474d4bcc554f1d8e9516e12d85be121d92410aa5"
+  }
+ },
+ "taken_at": "2026-11-19T22:01:14Z",
+ "endpoints": [
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/my/logins/direct",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-directLoginEndpoint",
+   "documented_path": "/obp/v6.0.0/my/logins/direct",
+   "fields": [
+    "token"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users/provider/PROVIDER/username/USERNAME",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv5.1.0-getUserByProviderAndUsername",
+   "documented_path": "/obp/v6.0.0/users/provider/PROVIDER/username/USERNAME",
+   "fields": [
+    "agreements",
+    "agreements[]",
+    "agreements[].text",
+    "agreements[].type",
+    "email",
+    "entitlements",
+    "entitlements.list",
+    "entitlements.list[]",
+    "entitlements.list[].bank_id",
+    "entitlements.list[].entitlement_id",
+    "entitlements.list[].role_name",
+    "first_name",
+    "is_deleted",
+    "is_locked",
+    "last_marketing_agreement_signed_date",
+    "last_name",
+    "provider",
+    "provider_id",
+    "user_id",
+    "username",
+    "views",
+    "views.list",
+    "views.list[]",
+    "views.list[].account_id",
+    "views.list[].bank_id",
+    "views.list[].view_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users/user-id/USER_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getUserByUserId",
+   "documented_path": "/obp/v6.0.0/users/user-id/USER_ID",
+   "fields": [
+    "agreements",
+    "agreements[]",
+    "agreements[].text",
+    "agreements[].type",
+    "created_date",
+    "email",
+    "email_validated",
+    "entitlements",
+    "entitlements.list",
+    "entitlements.list[]",
+    "entitlements.list[].bank_id",
+    "entitlements.list[].entitlement_id",
+    "entitlements.list[].role_name",
+    "first_name",
+    "is_deleted",
+    "is_locked",
+    "last_activity_date",
+    "last_marketing_agreement_signed_date",
+    "last_name",
+    "last_used_locale",
+    "provider",
+    "provider_id",
+    "recent_operation_ids",
+    "recent_operation_ids[]",
+    "updated_date",
+    "user_id",
+    "username",
+    "views",
+    "views.list",
+    "views.list[]",
+    "views.list[].account_id",
+    "views.list[].bank_id",
+    "views.list[].view_id"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getUsers",
+   "documented_path": "/obp/v6.0.0/users",
+   "fields": [
+    "users",
+    "users[]",
+    "users[].agreements",
+    "users[].agreements[]",
+    "users[].agreements[].text",
+    "users[].agreements[].type",
+    "users[].created_date",
+    "users[].email",
+    "users[].email_validated",
+    "users[].entitlements",
+    "users[].entitlements.list",
+    "users[].entitlements.list[]",
+    "users[].entitlements.list[].bank_id",
+    "users[].entitlements.list[].entitlement_id",
+    "users[].entitlements.list[].role_name",
+    "users[].first_name",
+    "users[].is_deleted",
+    "users[].is_locked",
+    "users[].last_marketing_agreement_signed_date",
+    "users[].last_name",
+    "users[].last_used_locale",
+    "users[].provider",
+    "users[].provider_id",
+    "users[].updated_date",
+    "users[].user_id",
+    "users[].username",
+    "users[].views",
+    "users[].views.list",
+    "users[].views.list[]",
+    "users[].views.list[].account_id",
+    "users[].views.list[].bank_id",
+    "users[].views.list[].view_id"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/users/verify-credentials",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-verifyUserCredentials",
+   "documented_path": "/obp/v6.0.0/users/verify-credentials",
+   "fields": [
+    "email",
+    "entitlements",
+    "entitlements.list",
+    "entitlements.list[]",
+    "entitlements.list[].bank_id",
+    "entitlements.list[].entitlement_id",
+    "entitlements.list[].role_name",
+    "provider",
+    "provider_id",
+    "user_id",
+    "username"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/oidc/clients/CLIENT_ID",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getOidcClient",
+   "documented_path": "/obp/v6.0.0/oidc/clients/CLIENT_ID",
+   "fields": [
+    "client_id",
+    "client_name",
+    "consumer_id",
+    "enabled",
+    "redirect_uris",
+    "redirect_uris[]"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/oidc/clients/verify",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-verifyOidcClient",
+   "documented_path": "/obp/v6.0.0/oidc/clients/verify",
+   "fields": [
+    "client_id",
+    "consumer_id",
+    "redirect_uris",
+    "redirect_uris[]",
+    "valid"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/providers",
+   "docs_from": "https://k8s.openbankproject.com",
+   "operation_id": "OBPv6.0.0-getProviders",
+   "documented_path": "/obp/v6.0.0/providers",
+   "fields": [
+    "providers",
+    "providers[]"
+   ]
+  }
+ ]
+}
