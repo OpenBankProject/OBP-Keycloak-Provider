@@ -1,0 +1,139 @@
+{
+ "about": "Every OBP-API call the Keycloak provider makes, all from OBPApiClient.java: verb, path (OBP placeholders in capitals), the source file, the text that makes the call (needles) and the response fields the code reads. A field written a|b means the code reads a, and reads b when a is missing. The reads are kept by hand, because the code reads the answers as JSON trees and no class maps to them. obp-api-contract/snapshot.json is what an OBP-API documents for these calls, written by obp-api-contract/snapshot.py. ObpApiContractTest checks this list against the source and the snapshot.",
+ "version_policy": "Each call writes the OBP-API version it needs in its own path. One configured version cannot serve them all, because an endpoint exists only in the versions OBP-API documents it for. ObpApiContractTest checks every call against the endpoint documented for the version it names, and ObpApiVersionTest fails on any version below v5.1.0 in the source and the documents. To move a call to a newer version, change its path and run snapshot.py again.",
+ "calls": [
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/my/logins/direct",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "config.getApiUrl() + \"/obp/v6.0.0/my/logins/direct\""
+   ],
+   "reads": [
+    "token"
+   ],
+   "note": "Gets the admin token that every other call uses."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users/provider/PROVIDER/username/USERNAME",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "\"/obp/v6.0.0/users/provider/\""
+   ],
+   "reads": [
+    "user_id",
+    "username",
+    "email",
+    "provider",
+    "first_name|firstname",
+    "last_name|lastname"
+   ],
+   "note": "The provider is percent-encoded. Needs the CanGetAnyUser role."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users/user-id/USER_ID",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "\"/obp/v6.0.0/users/user-id/\""
+   ],
+   "reads": [
+    "user_id",
+    "username",
+    "email",
+    "provider",
+    "first_name|firstname",
+    "last_name|lastname"
+   ],
+   "note": "Needs the CanGetAnyUser role."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/users",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "callWithRetry(\"GET\", \"/obp/v6.0.0/users\", null)"
+   ],
+   "reads": [
+    "users",
+    "users[].user_id",
+    "users[].username",
+    "users[].email",
+    "users[].provider",
+    "users[].first_name|firstname",
+    "users[].last_name|lastname"
+   ],
+   "note": "The provider filter is applied in memory, after the answer arrives."
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/users/verify-credentials",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "\"/obp/v6.0.0/users/verify-credentials\""
+   ],
+   "reads": [
+    "user_id",
+    "username",
+    "email",
+    "provider",
+    "first_name|firstname",
+    "last_name|lastname"
+   ],
+   "note": "Checks a username and password. The user in the answer is the one who logs in.",
+   "undocumented_fields": [
+    "first_name|firstname",
+    "last_name|lastname"
+   ]
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/oidc/clients/CLIENT_ID",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "\"/obp/v6.0.0/oidc/clients/\" + encode(clientId)"
+   ],
+   "reads": [
+    "client_id",
+    "client_name",
+    "consumer_id",
+    "redirect_uris",
+    "grant_types",
+    "enabled"
+   ],
+   "note": "Needs the CanGetOidcClient role. An older OBP-API has no grant_types, and then every grant is allowed.",
+   "undocumented_fields": [
+    "grant_types"
+   ]
+  },
+  {
+   "verb": "POST",
+   "path": "/obp/v6.0.0/oidc/clients/verify",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "\"/obp/v6.0.0/oidc/clients/verify\""
+   ],
+   "reads": [
+    "valid"
+   ],
+   "note": "Asks OBP to check a client secret. Needs the CanVerifyOidcClient role."
+  },
+  {
+   "verb": "GET",
+   "path": "/obp/v6.0.0/providers",
+   "source": "src/main/java/io/tesobe/providers/OBPApiClient.java",
+   "needles": [
+    "callWithRetry(\"GET\", \"/obp/v6.0.0/providers\", null)"
+   ],
+   "reads": [
+    "providers",
+    "providers[].id"
+   ],
+   "note": "Optional. Needs the CanGetProviders role.",
+   "undocumented_fields": [
+    "providers[].id"
+   ]
+  }
+ ]
+}
